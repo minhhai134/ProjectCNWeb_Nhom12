@@ -2,6 +2,7 @@
 //     addnewUser
 // } = require("../services/userServices");
 const userService = require("../services/userService");
+const auth = require("../controllers/authController");
 
 exports.addnewUser = async (req, res) => {
   try {
@@ -23,7 +24,8 @@ exports.login = async (req, res) => {
     const u = await userService.findUserByUsername(req.body['username']); // phải là .body['username]
     if (u == null) res.json({ status: "Login unsuccessful" });
     else if (u['username'] === req.body['username'] && u['password'] === req.body['password']) {
-      res.json({ data: u, status: "Login successful" });
+      const token = auth.generateToken(u["_id"]);
+      res.json({ data: u, token: token , status: "Login successful" });
     }
     else res.json({ status: "Login unsuccessful" });
 

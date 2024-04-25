@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const auth = require("../controllers/authController");
 
 const userController = require("../controllers/userController");
 
@@ -11,6 +12,6 @@ router.
 
 
 router.  
-    route("/updateUser").put(userController.editUserInf);
+    route("/updateUser").put(auth.authMiddleware,userController.editUserInf);
 
 module.exports = router;
