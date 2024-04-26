@@ -4,6 +4,8 @@ const auth = require("../controllers/authController");
 
 const userController = require("../controllers/userController");
 
+//  router.route("/home").get((req,res)=>{res.sendFile(__dirname + "/index.html");})
+
 router.
     route("/register").post(userController.addnewUser);
 

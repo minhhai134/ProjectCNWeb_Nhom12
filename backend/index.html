@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+</head>
+
+<body>
+   
+    Friend :
+    <select id="mySelect2">
+        <option value="662683fe866a796086e69f64">f1</option>
+        <option value="662b62a9f860c02ac7626456">f2</option>
+        <option value="662b62b9f860c02ac762645a">f3</option>
+        <option value="662b62c3f860c02ac762645e">f4</option>
+    </select>
+
+
+    <h1 id="yourname"></h1>
+    <ul id="messages"></ul>
+
+    <form id="form" action="">
+        <input id="input" autocomplete="off"> <button>Send</button>
+    </form>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+
+        const socket = io();
+
+
+        var userID = localStorage.getItem('userid');
+        var friendID = " ";
+
+        
+
+        document.getElementById("mySelect2").addEventListener('change', function () {
+            friendID = this.value;
+            console.log("Friend " + friendID);
+        });
+
+
+
+        const messages = document.getElementById('messages');
+        const form = document.getElementById('form');
+        const input = document.getElementById('input');
+        const name = document.getElementById('yourname');
+
+        
+        
+        socket.on("connect", () => {
+               console.log(userID+" connected");
+        });
+
+        socket.on("transfer-msg", (msg) => {
+                console.log(msg);
+        });
+
+
+
+
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            let msg = input.value;
+            socket.emit("sendMsg", msg);
+            input.value = "";
+        });
+
+
+
+    </script>
+</body>
+
+</html>

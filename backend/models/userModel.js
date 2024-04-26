@@ -16,6 +16,19 @@ const userSchema = mongoose.Schema({
     }
 });
 
+
+const friendSchema = mongoose.Schema({
+     
+});
+
+const conversationSchema = mongoose.Schema({
+
+});
+
+
+
+
+
 const User = mongoose.model("User", userSchema);
 
 module.exports = {User};

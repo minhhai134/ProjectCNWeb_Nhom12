@@ -4,6 +4,7 @@
 const userService = require("../services/userService");
 const auth = require("../controllers/authController");
 
+// FOR SIGN IN
 exports.addnewUser = async (req, res) => {
   try {
     const u = await userService.findUserByUsername(req.body['username']); // phải là .body['username]
@@ -19,6 +20,7 @@ exports.addnewUser = async (req, res) => {
   }
 };
 
+// FOR LOGIN
 exports.login = async (req, res) => {
   try {
     const u = await userService.findUserByUsername(req.body['username']); // phải là .body['username]
@@ -34,7 +36,7 @@ exports.login = async (req, res) => {
   }
 };
 
-
+// FOR EDIT USER INFORMATION
 exports.editUserInf = async (req, res) => {
   try {
     const user = await userService.editUserInf(req.body['id'], req.body); // phải là .body['id']
