@@ -1,14 +1,14 @@
 // Use for manipulate database
-const userModel = require("../models/userModel");
+const Model = require("../models/Models");
 
 exports.addnewUser = async(user) => {
-   return await userModel.User.create(user);
+   return await Model.User.create(user);
 };
 
 exports.findUserByUsername = async(username) => {
-   return await userModel.User.findOne({username : username});
+   return await Model.User.findOne({username : username});
 };
 
 exports.editUserInf = async(id,user) => {
-   return await userModel.User.findByIdAndUpdate(id,user);
+   return await Model.User.findByIdAndUpdate(id,user);
 };

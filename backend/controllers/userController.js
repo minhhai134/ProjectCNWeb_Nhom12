@@ -23,6 +23,7 @@ exports.addnewUser = async (req, res) => {
 // FOR LOGIN
 exports.login = async (req, res) => {
   try {
+
     const u = await userService.findUserByUsername(req.body['username']); // phải là .body['username]
     if (u == null) res.json({ status: "Login unsuccessful" });
     else if (u['username'] === req.body['username'] && u['password'] === req.body['password']) {
