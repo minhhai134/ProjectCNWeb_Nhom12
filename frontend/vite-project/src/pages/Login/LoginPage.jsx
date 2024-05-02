@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Login.css'
 
-const Login = () => {
+const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -53,4 +53,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginPage;

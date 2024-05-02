@@ -19,6 +19,7 @@
   }
   
   .input-group label {
+    color: #000;
     font-size: 1.1rem;
     font-weight: bold;
     margin-bottom: 5px;
@@ -29,8 +30,8 @@
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
-    background-color: #484b51;
-    color: #fff;
+    background-color: #fff;
+    color:#000;
     box-sizing: border-box; /* Đảm bảo kích thước input tính cả padding và border */
   }
 
@@ -40,5 +41,6 @@
   }
       
   .link-register{
+    color: #000;
     text-align: center;
   }
