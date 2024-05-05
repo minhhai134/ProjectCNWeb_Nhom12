@@ -14,9 +14,10 @@ const userSchema = mongoose.Schema({
     conversations : [
         {
         type : mongoose.Schema.ObjectId,
-        ref : "Conversation"
+        ref : "Conversation",
+        seenStatus: String
         }
-    ],
+    ]
 
 });
 const User = mongoose.model("User", userSchema);
@@ -47,15 +48,15 @@ const conversationSchema = mongoose.Schema({
         type : mongoose.Schema.ObjectId,
         ref : "User"
         }
-    ]
-    
-    // messages : [ if there are more than a few thousand documents on the "many" side, 
-    //              don't use an array of ObjectID references
-    //     {
-    //         type : mongoose.Schema.ObjectId,
-    //         ref : "Message"
-    //     }
-    // ]
+    ],   
+    messages : [ 
+        {
+            type : mongoose.Schema.ObjectId,
+            ref : "Message"
+        }
+    ],
+    lastActive: Date,
+    length : Number
 
 });
 const conversation = mongoose.model("Conversation", conversationSchema);

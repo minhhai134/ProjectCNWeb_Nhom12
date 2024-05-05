@@ -4,13 +4,14 @@ const auth = require("../controllers/authController");
 
 const userController = require("../controllers/userController");
 const messageController = require("../controllers/messageController");
-//  router.route("/home").get((req,res)=>{res.sendFile(__dirname + "/index.html");})
+
 
 router.
     route("/register").post(userController.addnewUser);
 
-router.
-    route("/login").post(userController.login);
+router.route("/login")
+    .get(userController.getUserInf) // Phải thêm auth vào
+    .post(userController.login);
 
 
 router.  
@@ -18,8 +19,14 @@ router.
 
 
 router.route("/conversation")
-    .put(messageController.getConversation)
-    .post(messageController.createConversation)
+    // .get(messageController.getConversationByID)   // GET CONVERSATION BY ID, truy cập conv từ tab conv
+    .put(messageController.getConversationByMembers)  // Truy cập conv từ tìm kiếm người dùng
+    .post(messageController.createConversation)      // Tạo cuộc trò chuyện mới
+    ;
+
+router.route("/message")
+    .get(messageController.getMessages) 
+    .post(messageController.addMessage)  // Lưu tin nhắn được gửi
     ;
 
 module.exports = router;

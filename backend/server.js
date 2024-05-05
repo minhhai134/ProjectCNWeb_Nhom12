@@ -39,15 +39,34 @@ const io = new Server(http, {    // io là server instance
 //-------------------------------------------------------------------------------------------------- */
 
 
+const onlineUsers = new Map();
+
+io.on("connection", (socket)=> {  // io là server instance
+    
+    socket.on("user_connect", (id) => {
+      // console.log("new connected: "+id);
+      onlineUsers.set(id,id);
+      socket.join(id);
+      // console.log(onlineUsers);
+    });
+
+    socket.on("user_disconnect", (id) => {
+      onlineUsers.delete(id);
+      // console.log("new disconnected: "+id);
+      // console.log(onlineUsers);
+    });
 
 
-io.on("connection", (socket)=>{  // io là server instance
-
-
-
-    socket.on("sendMsg", (msg)=>{
+    socket.on("sendMsg", (msg)=> {
+        // console.log(msg);
+        // socket.broadcast.emit("transfer-msg", msg);
         
-        socket.broadcast.emit("transfer-msg", msg);
+        let receiver = msg.receiver;
+ 
+        if(onlineUsers.get(receiver)!=null){
+           io.to(msg.receiver).emit("trans-msg", msg);
+        }
+
     });
 
 

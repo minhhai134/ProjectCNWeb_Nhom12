@@ -1,36 +1,75 @@
 const messageService = require("../services/messageService");
 //const auth = require("../controllers/authController");
 
+
+// LƯU TIN NHẮN ĐƯỢC GỬI
 exports.addMessage = async (req, res) => {
     try {
-        messageService.addMessage(req.body);
-        res.status(500).json({ status: "success" });
+      const message = req.body;
+      // console.log("1: "); console.log(message);
+      // Lưu tin nhắn vào db
+
+
+      const msg = await messageService.addMessage(message);
+
+
+      // Thêm message ID, cập nhật lastActve, length của conversation
+      const conv = await messageService.addMessageToConversation(msg, message.conversation);
+
+
+      // Cập nhật seenStatus của sender
+      
+    
+      // Cập nhật seenStatus của receiver
+        // console.log(res);
+        res.json({ message: msg, status: "success" });
   
     } catch (err) {
+      console.log(err);
       res.status(500).json({ error: err.message });
     }
   };
+
+
 
 
 exports.getMessages = async (req, res) => {
     try {
-      
-      if (u == null) {
-        
-        res.json({ data: user, status: "success" });
-      } else {
-        res.json({ message: "username already exist", status: "success" });
-      }
-  
+      // console.log(req.headers);
+     let convID = req.headers.convid;
+     let Idx = req.headers.idx;
+     let length = req.headers.length;
+     let messages = await messageService.getMessage(convID,length,Idx);
+    //  console.log(messages);
+     res.json({ messages: messages, status: "success" });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
   };
 
-exports.getConversation = async(req,res) => {
+
+// LẤY THÔNG TIN CONVERSATION KHI MỞ TỪ TAB conversation ở trang chủ
+// => CHUẨN BỊ BỎ, Các thông tin như conversationID, "friendID", ... đã được lấy từ lúc getUserInf
+// Mở cuộc trò chuyện từ tab conversation giờ chỉ cần getMessage
+// exports.getConversationByID = async (req, res) => {
+//     try {
+//     const conversation = await messageService.getConversationByID(req.headers.conv_id);
+//     if(conversation==null)  res.json({ message: "conversation not found"});
+//     res.json({ conversation: conversation, status: "success" });
+  
+//     } catch (err) {
+//       res.status(500).json({ error: err.message });
+//     }
+//   };
+
+
+
+
+// DÙNG TRONG TRƯỜNG HỢP MỞ CUỘC TRÒ CHUYỆN TỪ TRANG CÁ NHÂN CỦA NGƯỜI BẠN ĐÓ
+exports.getConversationByMembers = async(req,res) => { 
   try {
 
-    const conversation = await messageService.findConversation(req.body);
+    const conversation = await messageService.findConversationByMembers(req.body);
     // console.log(conversation);
     res.json({ data: conversation, status: "success" });  // conversation là null hay không sẽ do client xử lý?
 
@@ -38,12 +77,15 @@ exports.getConversation = async(req,res) => {
     res.status(500).json({ error: err.message });
   }
 };
-//  => getConversation dùng để lấy các cuộc trò chuyện của một người dùng, sử dụng input là userID của người đó
 
+
+
+
+// TẠO CUỘC TRÒ CHUYỆN bằng userID của các thành viên
 exports.createConversation = async(req,res) => {
   try {
     // console.log("1: ", req.body);
-    const conversation = await messageService.createConversation(req.body);
+    const conversation = await messageService.createConversationByMembers(req.body);
     // console.log("conversation: " + conversation);
     if (conversation) {       // conversation vừa được tạo
       res.json({data: conversation, status: "success"   });
