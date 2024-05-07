@@ -8,7 +8,7 @@ import {
   StyledEngineProvider,
 } from "@mui/material/styles";
 // hooks
-import useSettings from "../hooks/useSettings.js";
+import useSettings from "../hooks/useSettings.jsx";
 //
 import palette from "./palette";
 import typography from "./typography";
