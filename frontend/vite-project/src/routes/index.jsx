@@ -23,11 +23,11 @@ export default function Router() {
       path: "/auth",
       element: <AuthLayout />,
       children: [
-        { path: "login", element: <LoginPage /> },
-        { path: "register", element: <RegisterPage /> },
-        { path: "reset-password", element: <ResetPasswordPage /> },
-        { path: "new-password", element: <NewPasswordPage /> },
-        {path: "verify", element: <VerifyPage /> },
+        { path: "Login", element: <LoginPage /> },
+        { path: "Register", element: <RegisterPage /> },
+        // { path: "reset-password", element: <ResetPasswordPage /> },
+        // { path: "new-password", element: <NewPasswordPage /> },
+        // {path: "verify", element: <VerifyPage /> },
       ],
     },
     {
@@ -67,17 +67,10 @@ const Contact = Loadable(lazy(() => import("../sections/Dashboard/Contact")));
 const Page404 = Loadable(lazy(() => import("../pages/Page404")));
 
 const LoginPage = Loadable(lazy(() => import("../pages/auth/Login")));
-const VerifyPage = Loadable(lazy(() => import("../pages/auth/Verify")));
 const RegisterPage = Loadable(lazy(() => import("../pages/auth/Register")));
-const ResetPasswordPage = Loadable(
-  lazy(() => import("../pages/auth/ResetPassword"))
-);
-const NewPasswordPage = Loadable(
-  lazy(() => import("../pages/auth/NewPassword"))
-);
 
-// Settings
-const Settings = Loadable(lazy(() => import("../pages/dashboard/Settings")));
+//Settings
+const Settings = Loadable(lazy(() => import("../pages/dashboard/Settings/index")));
 const Profile = Loadable(
   lazy(() => import("../pages/dashboard/Settings/Profile"))
 );

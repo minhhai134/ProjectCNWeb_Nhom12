@@ -79,4 +79,48 @@ export function LoginUser(formValues) {
           );
         });
     };
-  }
+}
+
+export function RegisterUser(formValues) {
+  return async (dispatch, getState) => {
+    dispatch(slice.actions.updateIsLoading({ isLoading: true, error: false }));
+
+    await axios
+      .post(
+        "/auth/register",
+        {
+          ...formValues,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      )
+      .then(function (response) {
+        console.log(response);
+        dispatch(
+          slice.actions.updateRegisterEmail({ email: formValues.email })
+        );
+
+        dispatch(
+          showSnackbar({ severity: "success", message: response.data.message })
+        );
+        dispatch(
+          slice.actions.updateIsLoading({ isLoading: false, error: false })
+        );
+      })
+      .catch(function (error) {
+        console.log(error);
+        dispatch(showSnackbar({ severity: "error", message: error.message }));
+        dispatch(
+          slice.actions.updateIsLoading({ error: true, isLoading: false })
+        );
+      })
+      .finally(() => {
+        if (!getState().auth.error) {
+          window.location.href = "/auth/verify";
+        }
+      });
+  };
+}  

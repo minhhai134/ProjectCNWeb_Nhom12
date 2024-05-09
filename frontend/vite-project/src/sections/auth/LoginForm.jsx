@@ -5,7 +5,7 @@ import { Link as RouterLink } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 // @mui
-import { Link, Stack, Alert, IconButton, InputAdornment } from "@mui/material";
+import { Stack, Alert, IconButton, InputAdornment } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 // components
 import FormProvider, { RHFTextField } from "../../components/hook-form";
@@ -87,9 +87,6 @@ export default function AuthLoginForm() {
           </Stack>
     
           <Stack alignItems="flex-end" sx={{ my: 2 }}>
-            <Link component={RouterLink} to="/auth/reset-password" variant="body2" color="inherit" underline="always">
-              Forgot password?
-            </Link>
           </Stack>
     
           <LoadingButton

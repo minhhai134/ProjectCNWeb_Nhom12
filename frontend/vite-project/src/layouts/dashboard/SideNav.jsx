@@ -4,15 +4,13 @@ import { useTheme } from "@mui/material/styles";
 import { Box, Divider, IconButton, Stack } from "@mui/material";
 import AntSwitch from "../../components/AntSwitch";
 
-import Logo from "../../assets/Images/logo.ico";
-
 import useSettings from "../../hooks/useSettings";
 import { Nav_Buttons, Nav_Setting } from "../../data";
 
 import ProfileMenu from "./ProfileMenu";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { UpdateTab } from "../../redux/slices/app";
+
 
 const getPath = (index) => {
   switch (index) {
@@ -46,7 +44,6 @@ const SideBar = () => {
   const selectedTab = tab;
 
   const handleChangeTab = (index) => {
-    dispatch(UpdateTab({ tab: index }));
     navigate(getPath(index));
   };
 
