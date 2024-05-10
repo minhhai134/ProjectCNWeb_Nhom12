@@ -37,23 +37,34 @@ exports.updateSeenStatus = async (convID, userID, status) => {  // Chưa tối �
 exports.getMessage = async (conversationId,length, mesIdx) => {
     // console.log(conversationId + " " +  length + " " + mesIdx);
     // console.log("length: "+length);
-    let as = async () => {
+    let as1 = async () => {
         if (length>10){
+            try {
             return await Model.conversation.findOne({_id:conversationId}, 
-                                        {messages:{$slice:[mesIdx-9,mesIdx ] }, _id:0, members: 0, lastActive:0, length: 0});
+                                        {messages:{$slice:[mesIdx-9,mesIdx ] }, _id:0, members: 0, lastActive:0, length: 0})
+                                         .populate("messages");
+            }
+            catch(err) {console.log(err);}
        }
        else if(length==1){
+        try{
             return await Model.conversation.findOne({_id:conversationId},
-                                         {messages:{$slice:1 },_id:0, members: 0, lastActive:0, length: 0});
+                                         {messages:{$slice:1 },_id:0, members: 0, lastActive:0, length: 0})
+                                          .populate("messages");
+            }
+             catch(err) {console.log(err);}
        }
        else {
-            
+        try {   
             return await Model.conversation.findOne({_id:conversationId}, 
-                                        {messages:{$slice:[0,mesIdx-1] }, _id:0, members: 0, lastActive:0, length: 0});
+                                        {messages:{$slice:[0,mesIdx-1] }, _id:0, members: 0, lastActive:0, length: 0})
+                                         .populate("messages");
+            }
+            catch(err) {console.log(err);}
        }
     }
     
-    let messageIDList = await as();
+    let messageIDList = await as1();
     // console.log(messageIDList);
     return messageIDList;
 

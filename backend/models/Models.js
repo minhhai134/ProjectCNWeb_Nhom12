@@ -56,8 +56,11 @@ const conversationSchema = mongoose.Schema({
         }
     ],
     lastActive: Date,
-    length : Number
+    length : Number,
+   
 
+}, {
+    strictPopulate: false
 });
 const conversation = mongoose.model("Conversation", conversationSchema);
 
