@@ -35,7 +35,7 @@ exports.updateSeenStatus = async (convID, userID, status) => {  // Chưa tối �
 
 // LẤY TIN NHẮN ĐỂ HIỂN THỊ
 exports.getMessage = async (conversationId,length, mesIdx) => {
-    // console.log(conversationId + " " +  length + " " + mesIdx);
+    console.log(conversationId + " " +  length + " " + mesIdx);
     // console.log("length: "+length);
     let as1 = async () => {
         if (length>10){
@@ -77,7 +77,7 @@ exports.findConversationByMembers = async (conversation) => {
     conversation.members = conversation.members.split(",");
     if(conversation.members[0]==conversation.members[1]) return null; // TẠM THỜI
     // console.log("1: " + conversation.members);
-    return await Model.conversation.findOne({members:{ $all: conversation.members } });   // (Chưa tối ưu)
+    return await Model.conversation.findOne({members:{ $all: conversation.members }}, {_id:1});   // (Chưa tối ưu)
 };                                          // , {members: 1,lastActive:1,length:1}
 
 exports.findConversationByID = async (id) => {
@@ -137,8 +137,8 @@ exports.createConversationByMembers = async (conversation) => {
        
     }
 
-    return user.conversations[user.conversations.length-1];
-    
+    // return user.conversations[user.conversations.length-1]; // TẠI SAO LẠI DÙNG CÁCH NÀY
+    return conv;
 };
 
 

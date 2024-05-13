@@ -65,12 +65,13 @@ exports.getMessages = async (req, res) => {
 
 
 
-// DÙNG TRONG TRƯỜNG HỢP MỞ CUỘC TRÒ CHUYỆN TỪ TRANG CÁ NHÂN CỦA NGƯỜI BẠN ĐÓ
+// DÙNG TRONG TRƯỜNG HỢP MỞ CUỘC TRÒ CHUYỆN TỪ THANH TÌM KIẾM
 exports.getConversationByMembers = async(req,res) => { 
   try {
 
     const conversation = await messageService.findConversationByMembers(req.body);
     // console.log(conversation);
+    if(!conversation) res.json({status: "Conversation not already been created" });
     res.json({ data: conversation, status: "success" });  // conversation là null hay không sẽ do client xử lý?
 
   } catch (err) {

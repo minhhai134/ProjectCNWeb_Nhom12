@@ -10,6 +10,8 @@ require('dotenv').config();
 app.use(express.urlencoded({ extended: false }));
 app.unsubscribe(express.json());
 
+const getUserByUserName = require("./services/userService").getUserByUserName;
+
 // MongoDB:
 mongoose.connect(process.env.MONGODB_URI)
   .then(console.log("Connect successful."))
@@ -67,6 +69,14 @@ io.on("connection", (socket)=> {  // io là server instance
            io.to(msg.receiver).emit("trans-msg", msg);
         }
 
+    });
+
+
+    socket.on("search_user", async(user) => {
+
+        let result = await getUserByUserName(user.searchStr);
+        // console.log(result);
+        io.to(user.userID).emit("searchUserResult", result);
     });
 
 

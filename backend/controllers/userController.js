@@ -48,50 +48,50 @@ exports.getUserInf = async (req, res) => {  // Dùng tạm thời? PHẢI CHỈN
     // Đi kèm với mỗi cuộc trò chuyện là friendID, friendName, friendAvt   
     // CỘNG VỚI THỨ TỰ LAST ACTIVE, TRẠNG THÁI SEEN hay chưa, giá trị length của cuộc trò chuyện
 
-    const u = await userService.findUserByID(req.headers['userid']); // phải là .body['username]
-
-
-    if (u == null) res.json({ status: "User not found" });
-    else {
-       u["ConversationList"] = [];
+    const u = await userService.getUserInf(req.headers['userid']); // phải là .body['username]
+    // console.log(u);
+// THAY ĐỔI DÙNG POPULATE
+    // if (u == null) res.json({ status: "User not found" });
+    // else {
+    //    u["ConversationList"] = [];
   
-      let as = async() => {
-        let promiseList = [];
-        for (let i = 0; i < u.conversations.length; i++) {
-          let convid = u.conversations[i];
-          let conversationInf = {};
-          let conv = await messageService.findConversationByID(convid);
-          // console.log(conv);
-           conversationInf["conv_id"] = conv._id;
-           conversationInf["lastActive"] = conv.lastActive;
-           conversationInf["length"] = conv.length;
+    //   let as = async() => {
+    //     let promiseList = [];
+    //     for (let i = 0; i < u.conversations.length; i++) {
+    //       let convid = u.conversations[i];
+    //       let conversationInf = {};
+    //       let conv = await messageService.findConversationByID(convid);
+    //       // console.log(conv);
+    //        conversationInf["conv_id"] = conv._id;
+    //        conversationInf["lastActive"] = conv.lastActive;
+    //        conversationInf["length"] = conv.length;
           
-          let friendID = u._id.toString() == conv.members[0].toString() ?conv.members[1]:conv.members[0];
-          // => PHẢI SO SÁNH toString() mới chạy đúng
+    //       let friendID = u._id.toString() == conv.members[0].toString() ?conv.members[1]:conv.members[0];
+    //       // => PHẢI SO SÁNH toString() mới chạy đúng
 
 
-          let friend = await userService.findUserByID(friendID);
-          // console.log("friend: "+friend);
-          conversationInf["friendId"] = friendID;
-          conversationInf["friendName"] = friend.displayName;
-          conversationInf["friendAvt"] = friend.avatar;
+    //       let friend = await userService.findUserByID(friendID);
+    //       // console.log("friend: "+friend);
+    //       conversationInf["friendId"] = friendID;
+    //       conversationInf["friendName"] = friend.displayName;
+    //       conversationInf["friendAvt"] = friend.avatar;
   
-          // console.log(conversationInf);
-          promiseList.push(conversationInf);
-          // console.log(u["ConversationList"]);
-        };
-        // console.log("promiseList: "+promiseList);
-         return promiseList;
+    //       // console.log(conversationInf);
+    //       promiseList.push(conversationInf);
+    //       // console.log(u["ConversationList"]);
+    //     };
+    //     // console.log("promiseList: "+promiseList);
+    //      return promiseList;
 
       
-      }
-      // console.log(await as());
-      u["ConversationList"] = await as();
-      // console.log(u["ConversationList"]);
+    //   }
+    //   // console.log(await as());
+    //   u["ConversationList"] = await as();
+    //   // console.log(u["ConversationList"]);
       res.json({ user: u, conversationList: u["ConversationList"], status: "User found" });
 
 
-    }
+   // }
 
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -108,3 +108,7 @@ exports.editUserInf = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+
+
+
