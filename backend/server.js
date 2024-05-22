@@ -75,7 +75,7 @@ io.on("connection", (socket)=> {  // io là server instance
     socket.on("search_user", async(user) => {
 
         let result = await getUserByUserName(user.searchStr);
-        // console.log(result);
+        console.log(result);
         io.to(user.userID).emit("searchUserResult", result);
     });
 

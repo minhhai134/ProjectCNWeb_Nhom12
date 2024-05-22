@@ -70,9 +70,9 @@ exports.getConversationByMembers = async(req,res) => {
   try {
 
     const conversation = await messageService.findConversationByMembers(req.body);
-    // console.log(conversation);
+    console.log(conversation);
     if(!conversation) res.json({status: "Conversation not already been created" });
-    res.json({ data: conversation, status: "success" });  // conversation là null hay không sẽ do client xử lý?
+    else res.json({ data: conversation, status: "success" });  // conversation là null hay không sẽ do client xử lý?
 
   } catch (err) {
     res.status(500).json({ error: err.message });
