@@ -1,7 +1,6 @@
 import React from "react";
 import { useTheme } from "@mui/material/styles";
 import { Box, Stack, Typography } from "@mui/material";
-
 import { Link, useSearchParams } from "react-router-dom";
 import ChatComponent from "./Conversation";
 import Chats from "./Chats";
@@ -13,10 +12,9 @@ import Media from "../../sections/Dashboard/SharedMessages";
 
 const GeneralApp = () => {
   const [searchParams] = useSearchParams();
-
   const theme = useTheme();
-
-  const { sideBar, room_id, chat_type } = useSelector((state) => state.app);
+  const { sideBar } = useSelector((state) => state.app);
+  const { isFirstLogin } = useSelector((state) => state.conversation);
 
   return (
     <>
@@ -39,8 +37,7 @@ const GeneralApp = () => {
                 : "6px solid #0162C4",
           }}
         >
-          {chat_type === "individual" &&
-          room_id !== null ? (
+          {!isFirstLogin  ? (
             <ChatComponent />
           ) : (
             <Stack
@@ -70,13 +67,10 @@ const GeneralApp = () => {
             switch (sideBar.type) {
               case "CONTACT":
                 return <Contact />;
-
               case "STARRED":
                 return <StarredMessages />;
-
               case "SHARED":
                 return <Media />;
-
               default:
                 break;
             }

@@ -1,145 +1,205 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { faker } from "@faker-js/faker";
-import { AWS_S3_REGION, S3_BUCKET_NAME } from "../../config";
+import axios from "../../utils/axios";
 
 const user_id = window.localStorage.getItem("user_id");
 
 const initialState = {
-  direct_chat: {
-    conversations: [],
-    current_conversation: null,
-    current_messages: [],
-  },
-  group_chat: {},
+  conversationsList: [],
+  currentConversationId: null,
+  current_messages:[],
+  isFirstLogin:true,
 };
 
 const slice = createSlice({
   name: "conversation",
   initialState,
   reducers: {
-    fetchDirectConversations(state, action) {
-      const list = action.payload.conversations.map((el) => {
-        const user = el.participants.find(
-          (elm) => elm._id.toString() !== user_id
-        );
-        return {
-          id: el._id,
-          user_id: user?._id,
-          name: `${user?.firstName} ${user?.lastName}`,
-          online: user?.status === "Online",
-          img: `https://${S3_BUCKET_NAME}.s3.${AWS_S3_REGION}.amazonaws.com/${user?.avatar}`,
-          msg: el.messages.slice(-1)[0].text, 
-          time: "9:36",
-          unread: 0,
-          pinned: false,
-          about: user?.about,
-        };
-      });
-
-      state.direct_chat.conversations = list;
+    fetchConversations(state, action) {
+      state.conversationsList = action.payload.conversations.map(conv => ({
+        ...conv,
+        currentIdx: conv.length, // Khởi tạo currentIdx bằng với độ dài của cuộc hội thoại
+        latestMessage: conv.latestMessage || null, // Lưu tin nhắn mới nhất vào cuộc hội thoại
+      }));
     },
-    updateDirectConversation(state, action) {
-      const this_conversation = action.payload.conversation;
-      state.direct_chat.conversations = state.direct_chat.conversations.map(
-        (el) => {
-          if (el?.id !== this_conversation._id) {
-            return el;
-          } else {
-            const user = this_conversation.participants.find(
-              (elm) => elm._id.toString() !== user_id
-            );
-            return {
-              id: this_conversation._id._id,
-              user_id: user?._id,
-              name: `${user?.firstName} ${user?.lastName}`,
-              online: user?.status === "Online",
-              img: faker.image.avatar(),
-              msg: faker.music.songName(),
-              time: "9:36",
-              unread: 0,
-              pinned: false,
-            };
-          }
-        }
-      );
+    updateConversation(state, action) {
+      // Code for updating a conversation if needed
     },
-    addDirectConversation(state, action) {
-      const this_conversation = action.payload.conversation;
-      const user = this_conversation.participants.find(
-        (elm) => elm._id.toString() !== user_id
-      );
-      state.direct_chat.conversations = state.direct_chat.conversations.filter(
-        (el) => el?.id !== this_conversation._id
-      );
-      state.direct_chat.conversations.push({
-        id: this_conversation._id._id,
-        user_id: user?._id,
-        name: `${user?.firstName} ${user?.lastName}`,
-        online: user?.status === "Online",
-        img: faker.image.avatar(),
-        msg: faker.music.songName(),
-        time: "9:36",
-        unread: 0,
-        pinned: false,
-      });
+    addConversation(state, action) {
+      // Code for adding a conversation if needed
     },
     setCurrentConversation(state, action) {
-      state.direct_chat.current_conversation = action.payload;
+      state.currentConversationId = action.payload.conversationId;
     },
     fetchCurrentMessages(state, action) {
-      const messages = action.payload.messages;
-      const formatted_messages = messages.map((el) => ({
-        id: el._id,
-        type: "msg",
-        subtype: el.type,
-        message: el.text,
-        incoming: el.to === user_id,
-        outgoing: el.from === user_id,
-      }));
-      state.direct_chat.current_messages = formatted_messages;
+      state.current_messages = action.payload.messages;
+      state.isFirstLogin=false;
     },
-    addDirectMessage(state, action) {
-      state.direct_chat.current_messages.push(action.payload.message);
-    }
+    addMessage(state, action) {
+      state.current_messages.push(action.payload.message);
+    },
+    setLatestMessage(state, action) {
+      const { message } = action.payload;
+      const conversationId = message.conversation;
+      const conversation = state.conversationsList.find(
+        (conv) => conv._id === conversationId
+      );
+      if (conversation) {
+        conversation.latestMessage = {
+          ...message,
+          sentTime: message.sentTime,
+          sender:message.sender,
+        };
+      }
+    },
   },
 });
+
 
 // Reducer
 export default slice.reducer;
 
 // ----------------------------------------------------------------------
 
-export const FetchDirectConversations = ({ conversations }) => {
+export const FetchConversations = () => {
   return async (dispatch, getState) => {
-    dispatch(slice.actions.fetchDirectConversations({ conversations }));
+    try {
+      const response = await axios.get('/login', {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'userid': user_id,
+        },
+      });
+
+      const { conversations } = response.data.user;
+
+      for (let conversation of conversations) {
+        const convId = conversation._id;
+        const initialIdx = conversation.length+1; // Khởi tạo currentIdx bằng với độ dài tin nhắn
+
+        try {
+          const messageResponse = await axios.get('/message', {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'convid': convId,
+              'idx': initialIdx, // Lấy tin nhắn mới nhất
+              'length': conversation.length>10?10:conversation.length,
+            },
+          });
+
+          const messages = messageResponse.data.messages.messages;
+          if (messages && messages.length > 0) {
+            const latestMessage = messages[messages.length-1]; // Lấy tin nhắn mới nhất
+            conversation.latestMessage = latestMessage;
+          }else{
+            conversation.latestMessage=null;
+          }
+        } catch (error) {
+          console.error("Error fetching latest message:", error);
+        }
+      }
+
+      dispatch(slice.actions.fetchConversations({ conversations }));
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+    }
   };
 };
+
+
+
 export const AddDirectConversation = ({ conversation }) => {
   return async (dispatch, getState) => {
-    dispatch(slice.actions.addDirectConversation({ conversation }));
+    dispatch(slice.actions.addConversation({ conversation }));
   };
 };
+
 export const UpdateDirectConversation = ({ conversation }) => {
   return async (dispatch, getState) => {
-    dispatch(slice.actions.updateDirectConversation({ conversation }));
+    dispatch(slice.actions.updateConversation({ conversation }));
   };
 };
 
-export const SetCurrentConversation = (current_conversation) => {
+export const SetCurrentConversation = (conversation) => {
   return async (dispatch, getState) => {
-    dispatch(slice.actions.setCurrentConversation(current_conversation));
+    dispatch(slice.actions.setCurrentConversation({ conversation }));
   };
 };
 
+export const FetchCurrentMessages = (conversationId) => {
+  console.log(conversationId.conversationId)
+  return async (dispatch, getState) => {
+    const { conversationsList } = getState().conversation;
+    dispatch(slice.actions.setCurrentConversation(conversationId));
+    console.log(conversationsList)
 
-export const FetchCurrentMessages = ({messages}) => {
-  return async(dispatch, getState) => {
-    dispatch(slice.actions.fetchCurrentMessages({messages}));
-  }
-}
+    const currentConversation = conversationsList.find(
+      (conversation) => conversation._id === conversationId.conversationId
+    );
+
+    console.log(currentConversation);
+
+    if (!currentConversation) {
+      console.error("Conversation not found:", conversationId);
+      return;
+    }
+  
+    const currentIdx = currentConversation.length+1;
+    console.log("curIDx:",currentIdx)
+
+    try {
+      const response = await axios.get('/message', {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'convid': currentConversation._id,
+          'idx': currentIdx,
+          'length': currentConversation.length>10?10:currentConversation.length,
+        },
+      });
+
+      console.log(response);
+      dispatch(slice.actions.fetchCurrentMessages({ messages: response.data.messages.messages }));
+
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      dispatch(slice.actions.fetchCurrentMessages({ messages: []}));
+
+    }
+  };
+};
+
+export const SetLatestMessage = (message) => {
+  return async (dispatch, getState) => {
+    console.log(message.message)
+    dispatch(slice.actions.setLatestMessage({message:message.message}))
+  };
+};
 
 export const AddDirectMessage = (message) => {
   return async (dispatch, getState) => {
-    dispatch(slice.actions.addDirectMessage({message}));
-  }
-}
+    console.log(message.message)
+    dispatch(slice.actions.addMessage( {message:message.message} ));
+  };
+};
+export const SendMessage = ({conversation,sender,receiver,sentTime,content}) => {
+  return async (dispatch, getState) => {
+    try {
+      const urlEncodedData = new URLSearchParams({
+        conversation:conversation,
+        sender:sender,
+        receiver:receiver,
+        sentTime:sentTime,
+        content:content
+      });
+
+      const response = await axios.post('/message', urlEncodedData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+
+      console.log(response);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+};

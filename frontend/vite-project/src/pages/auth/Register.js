@@ -23,22 +23,6 @@ export default function Register() {
       </Stack>
       {/* Form */}
       <RegisterForm  />
-
-      <Typography
-        component="div"
-        sx={{ color: 'text.secondary', mt: 3, typography: 'caption', textAlign: 'center' }}
-      >
-        {'By signing up, I agree to '}
-        <Link underline="always" color="text.primary">
-          Terms of Service
-        </Link>
-        {' and '}
-        <Link underline="always" color="text.primary">
-          Privacy Policy
-        </Link>
-        .
-      </Typography>
-
       </>
   );
 }

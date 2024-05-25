@@ -70,7 +70,7 @@ const ChatHeader = () => {
   const isMobile = useResponsive("between", "md", "xs", "sm");
   const theme = useTheme();
 
-  const {current_conversation} = useSelector((state) => state.conversation.direct_chat);
+  const {conversationsList,currentConversationId} = useSelector((state) => state.conversation);
 
   const [conversationMenuAnchorEl, setConversationMenuAnchorEl] =
     React.useState(null);
@@ -118,14 +118,14 @@ const ChatHeader = () => {
                 variant="dot"
               >
                 <Avatar
-                  alt={current_conversation?.name}
-                  src={current_conversation?.img}
+                  alt={conversationsList.find(conv => conv._id===currentConversationId).members[0].displayName}
+                  src={''}
                 />
               </StyledBadge>
             </Box>
             <Stack spacing={0.2}>
               <Typography variant="subtitle2">
-                {current_conversation?.name}
+                {conversationsList.find(conv => conv._id===currentConversationId).members[0].displayName}
               </Typography>
               <Typography variant="caption">Online</Typography>
             </Stack>
@@ -135,7 +135,7 @@ const ChatHeader = () => {
             alignItems="center"
             spacing={isMobile ? 1 : 3}
           >
-            <IconButton onClick={() => {
+            {/* <IconButton onClick={() => {
               dispatch(StartVideoCall(current_conversation.user_id));
             }}>
               <VideoCamera />
@@ -147,7 +147,7 @@ const ChatHeader = () => {
               }}
             >
               <Phone />
-            </IconButton>
+            </IconButton> */}
             {!isMobile && (
               <IconButton>
                 <MagnifyingGlass />

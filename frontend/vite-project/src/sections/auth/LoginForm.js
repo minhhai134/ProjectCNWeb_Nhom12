@@ -22,14 +22,14 @@ export default function AuthLoginForm() {
   const {isLoading} = useSelector((state) => state.auth);
 
   const LoginSchema = Yup.object().shape({
-    email: Yup.string()
+    username: Yup.string()
       .required("Username is required"),
     password: Yup.string().required("Password is required"),
   });
 
   const defaultValues = {
-    username: "aaaaaa",
-    password: "demo1234",
+    username: "qwertyuiop123456",
+    password: "1234567890",
   };
 
   const methods = useForm({
@@ -46,11 +46,12 @@ export default function AuthLoginForm() {
 
   const onSubmit = async (data) => {
     try {
+      console.log(1);
       console.log(data);
       // submit data to backend
       dispatch(LoginUser(data));
     } catch (error) {
-      console.error(error);
+      console.log(error);
       reset();
       setError("afterSubmit", {
         ...error,
@@ -66,25 +67,31 @@ export default function AuthLoginForm() {
           <Alert severity="error">{errors.afterSubmit.message}</Alert>
         )}
 
-        <RHFTextField name="username" label="Username" />
+    <RHFTextField
+      name="username"
+      label="Username"
+      autoComplete="username"
+    />
 
-        <RHFTextField
-          name="password"
-          label="Password"
-          type={showPassword ? "text" : "password"}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={() => setShowPassword(!showPassword)}
-                  edge="end"
-                >
-                  {showPassword ? <Eye /> : <EyeSlash />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
+    <RHFTextField
+      name="password"
+      label="Password"
+      type={showPassword ? "text" : "password"}
+      autoComplete="current-password"
+      InputProps={{
+        endAdornment: (
+          <InputAdornment position="end">
+            <IconButton
+              onClick={() => setShowPassword(!showPassword)}
+              edge="end"
+            >
+              {showPassword ? <Eye /> : <EyeSlash />}
+            </IconButton>
+          </InputAdornment>
+        ),
+      }}
+    />
+
       </Stack>
 
       <Stack alignItems="flex-end" sx={{ my: 2 }}>

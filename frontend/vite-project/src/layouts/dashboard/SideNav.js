@@ -68,16 +68,6 @@ const SideBar = () => {
         sx={{ height: "100%" }}
       >
         <Stack alignItems={"center"} spacing={4}>
-          <Box
-            sx={{
-              height: 64,
-              width: 64,
-              borderRadius: 1.5,
-              backgroundColor: theme.palette.primary.main,
-            }}
-            p={1}
-          >
-          </Box>
           <Stack
             sx={{ width: "max-content" }}
             direction="column"

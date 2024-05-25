@@ -20,6 +20,8 @@ import { CallLogElement } from "../../components/CallElement";
 import StartCall from "../../sections/Dashboard/StartCall";
 import { useDispatch, useSelector } from "react-redux";
 import { FetchCallLogs } from "../../redux/slices/app";
+import { CallList } from "../../data";
+
 
 const Call = () => {
   const dispatch = useDispatch();
@@ -92,7 +94,7 @@ const Call = () => {
             <Stack sx={{ flexGrow: 1, overflow: "scroll", height: "100%" }}>
               <SimpleBarStyle timeout={500} clickOnTrack={false}>
                 <Stack spacing={2.4}>
-                  {call_logs.map((el, idx) => {
+                  {CallList.map((el, idx) => {
                     return <CallLogElement key={idx} {...el} />;
                   })}
                 </Stack>

@@ -142,13 +142,15 @@ const Contact = () => {
         >
           <Stack alignItems="center" direction="row" spacing={2}>
             <Avatar
-              src={current_conversation?.img}
+              // src={current_conversation?.img}
+              src={faker.image.avatar()}
               alt={current_conversation?.name}
               sx={{ height: 64, width: 64 }}
             />
             <Stack spacing={0.5}>
               <Typography variant="article" fontWeight={600}>
-                {current_conversation?.name}
+                {/* {current_conversation?.name} */}
+                {faker.name.fullName()}
               </Typography>
               <Typography variant="body2" fontWeight={500}>
                 {"+91 62543 28 739"}
@@ -180,7 +182,8 @@ const Contact = () => {
               About
             </Typography>
             <Typography variant="body2" fontWeight={500}>
-              {current_conversation?.about}
+              {/* {current_conversation?.about} */}
+              Buoi toi that dep
             </Typography>
           </Stack>
           <Divider />

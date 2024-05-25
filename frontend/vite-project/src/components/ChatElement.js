@@ -1,9 +1,11 @@
 import React from "react";
 import { Box, Badge, Stack, Avatar, Typography } from "@mui/material";
 import { styled, useTheme, alpha } from "@mui/material/styles";
-import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { SelectConversation } from "../redux/slices/app";
+import conversation, { FetchCurrentMessages } from "../redux/slices/conversation";
+import { format, parseISO, isSameDay } from "date-fns";
+import { vi } from "date-fns/locale";
 
 const truncateText = (string, n) => {
   return string?.length > n ? `${string?.slice(0, n)}...` : string;
@@ -44,29 +46,21 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
   },
 }));
 
-const ChatElement = ({ img, name, msg, time, unread, online, id }) => {
+const ChatElement = ({ img, displayName, msg, time, unread, online, id, isSearching,onClick }) => {
   const dispatch = useDispatch();
-  const {room_id} = useSelector((state) => state.app);
-  const selectedChatId = room_id?.toString();
+  const { currentConversationId,isFirstLogin } = useSelector((state) => state.conversation);
 
-  let isSelected = +selectedChatId === id;
-
-  if (!selectedChatId) {
-    isSelected = false;
-  }
+  const isSelected = !isFirstLogin ? currentConversationId === id:false;
 
   const theme = useTheme();
 
+
   return (
     <StyledChatBox
-      onClick={() => {
-        dispatch(SelectConversation({room_id: id}));
-      }}
+    onClick={onClick}
       sx={{
         width: "100%",
-
         borderRadius: 1,
-
         backgroundColor: isSelected
           ? theme.palette.mode === "light"
             ? alpha(theme.palette.primary.main, 0.5)
@@ -83,20 +77,19 @@ const ChatElement = ({ img, name, msg, time, unread, online, id }) => {
         justifyContent="space-between"
       >
         <Stack direction="row" spacing={2}>
-          {" "}
           {online ? (
             <StyledBadge
               overlap="circular"
               anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
               variant="dot"
             >
-              <Avatar alt={name} src={img} />
+              <Avatar alt={displayName} src={img} />
             </StyledBadge>
           ) : (
-            <Avatar alt={name} src={img} />
+            <Avatar alt={displayName} src={img} />
           )}
           <Stack spacing={0.3}>
-            <Typography variant="subtitle2">{name}</Typography>
+            <Typography variant="subtitle2">{displayName}</Typography>
             <Typography variant="caption">{truncateText(msg, 20)}</Typography>
           </Stack>
         </Stack>
@@ -104,11 +97,7 @@ const ChatElement = ({ img, name, msg, time, unread, online, id }) => {
           <Typography sx={{ fontWeight: 600 }} variant="caption">
             {time}
           </Typography>
-          <Badge
-            className="unread-count"
-            color="primary"
-            badgeContent={unread}
-          />
+          <Badge className="unread-count" color="primary" badgeContent={unread} />
         </Stack>
       </Stack>
     </StyledChatBox>

@@ -1,11 +1,15 @@
-import io from "socket.io-client"; // Add this
+import io from "socket.io-client";
 
 let socket;
 
 const connectSocket = (user_id) => {
-  socket = io("https://api.chat.codingmonk.in/", {
+  socket = io("http://localhost:8000", {
     query: `user_id=${user_id}`,
   });
-} // Add this -- our server will run on port 4000, so we connect to it from here
+  socket.on("connect", () => {
+    console.log("Connected to server");
+    socket.emit("user_connect", user_id);
+  });
+};
 
-export {socket, connectSocket};
+export { socket, connectSocket };

@@ -72,7 +72,7 @@ const CreateGroupForm = ({ handleClose }) => {
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <Stack spacing={3}>
+      <Stack spacing={3} sx={{margin:'10px 0'}}>
         <RHFTextField name="title" label="Title" />
         <RHFAutocomplete
           name="members"

@@ -18,6 +18,7 @@ import { useDispatch } from "react-redux";
 import { StartAudioCall } from "../redux/slices/audioCall";
 import { StartVideoCall } from "../redux/slices/videoCall";
 import { AWS_S3_REGION, S3_BUCKET_NAME } from "../config";
+import { faker } from "@faker-js/faker";
 
 const StyledChatBox = styled(Box)(({ theme }) => ({
   "&:hover": {
@@ -81,13 +82,13 @@ const CallLogElement = ({ img, name, incoming, missed, online, id }) => {
               anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
               variant="dot"
             >
-              <Avatar alt={name} src={`https://${S3_BUCKET_NAME}.s3.${AWS_S3_REGION}.amazonaws.com/${img}`} />
+              <Avatar alt={faker.name.fullName()} src={faker.image.avatar()} />
             </StyledBadge>
           ) : (
-            <Avatar alt={name} src={`https://${S3_BUCKET_NAME}.s3.${AWS_S3_REGION}.amazonaws.com/${img}`} />
+            <Avatar alt={faker.name.fullName()} src={faker.image.avatar()} />
           )}
           <Stack spacing={0.3}>
-            <Typography variant="subtitle2">{name}</Typography>
+            <Typography variant="subtitle2">{faker.name.fullName()}</Typography>
             <Stack spacing={1} alignItems="center" direction={"row"}>
               {incoming ? (
                 <ArrowDownLeft color={missed ? "red" : "green"} />

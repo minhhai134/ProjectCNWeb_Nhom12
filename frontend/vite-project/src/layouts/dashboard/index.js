@@ -10,6 +10,7 @@ import {
   UpdateDirectConversation,
   AddDirectConversation,
   AddDirectMessage,
+  FetchConversations
 } from "../../redux/slices/conversation";
 import AudioCallNotification from "../../sections/Dashboard/Audio/CallNotification";
 import VideoCallNotification from "../../sections/Dashboard/video/CallNotification";
@@ -32,9 +33,15 @@ const DashboardLayout = () => {
     (state) => state.videoCall
   );
   const { isLoggedIn } = useSelector((state) => state.auth);
-  const { conversations, current_conversation } = useSelector(
-    (state) => state.conversation.direct_chat
+  const { conversationsList, current_conversation } = useSelector(
+    (state) => state.conversation
   );
+
+  useEffect(() => {
+    if (user_id) {
+      dispatch(FetchConversations(user_id));
+    }
+  }, [dispatch, user_id]);
 
   useEffect(() => {
     dispatch(FetchUserProfile());
@@ -94,7 +101,7 @@ const DashboardLayout = () => {
       socket.on("start_chat", (data) => {
         console.log(data);
         // add / update to conversation list
-        const existing_conversation = conversations.find(
+        const existing_conversation = conversationsList.find(
           (el) => el?.id === data._id
         );
         if (existing_conversation) {

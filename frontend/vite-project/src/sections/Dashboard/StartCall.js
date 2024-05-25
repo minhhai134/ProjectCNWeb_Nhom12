@@ -12,8 +12,8 @@ import {
   StyledInputBase,
 } from "../../components/Search";
 import { MagnifyingGlass } from "phosphor-react";
-import { CallElement } from "../../components/CallElement";
-import { CallList } from "../../data";
+import { CallElement,CallLogElement } from "../../components/CallElement";
+import { CallList, MembersList } from "../../data";
 import { useDispatch, useSelector } from "react-redux";
 import { FetchAllUsers } from "../../redux/slices/app";
 import {faker} from "@faker-js/faker";
@@ -50,7 +50,7 @@ const StartCall = ({ open, handleClose }) => {
     >
       <DialogTitle>{"Start New Conversation"}</DialogTitle>
       <Stack p={1} sx={{ width: "100%" }}>
-        {/* <Search>
+        <Search>
           <SearchIconWrapper>
             <MagnifyingGlass color="#709CE6" />
           </SearchIconWrapper>
@@ -58,13 +58,13 @@ const StartCall = ({ open, handleClose }) => {
             placeholder="Search…"
             inputProps={{ "aria-label": "search" }}
           />
-        </Search> */}
+        </Search>
       </Stack>
       <DialogContent>
         <Stack sx={{ height: "100%" }}>
           <Stack spacing={2.4}>
-            {list.map((el, idx) => {
-              return <CallElement key={idx} {...el} handleClose={handleClose} />;
+            {MembersList.map((el, idx) => {
+              return <CallLogElement key={idx} {...el} handleClose={handleClose} />;
             })}
           </Stack>
         </Stack>
