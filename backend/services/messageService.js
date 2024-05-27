@@ -158,7 +158,7 @@ exports.createConversationByMembers = async (conversation) => {
             try{ 
                 user = await Model.User.findByIdAndUpdate(
                 { _id: conv.members[i] }, // Filter to find the user document by its ID
-                { $set: { conversations: convarray,  }}
+                { $set: { conversations: convarray, conversationStatus:convstatusarray   }}
             );
             // console.log(user);
         }
