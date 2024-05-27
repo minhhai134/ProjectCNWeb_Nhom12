@@ -64,7 +64,7 @@ const conversationSchema = mongoose.Schema({
     ],
     lastActive: Date,
     length : Number,
-    blockStatus: String
+    blockStatus: {type:String, default:""}
       
 
 }, {

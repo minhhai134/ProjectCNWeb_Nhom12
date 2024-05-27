@@ -80,6 +80,15 @@ io.on("connection", (socket)=> {  // io là server instance
     });
 
 
+    socket.on("blockUser", (blockObj) => {
+      io.to(blockObj.user2).emit("blocked", blockObj.user1, blockObj.conv );
+    });
+
+    socket.on("unblockUser", (blockObj) => {
+      io.to(blockObj.user2).emit("unblocked", blockObj.user1, blockObj.conv );
+    });
+
+
 });
 
 
