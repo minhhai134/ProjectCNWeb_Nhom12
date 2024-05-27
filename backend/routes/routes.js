@@ -24,6 +24,15 @@ router.route("/conversation")
     .post(messageController.createConversation)      // Tạo cuộc trò chuyện mới
     ;
 
+router.route("/conversationstatus")
+    //.put()  // userController.
+    .post(messageController.updatConvStatus)      
+    ;
+
+router.route("/blockStatus")
+  .post(messageController.updateBlockStatus)
+  ;
+
 router.route("/message")
     .get(messageController.getMessages) 
     .post(messageController.addMessage)  // Lưu tin nhắn được gửi

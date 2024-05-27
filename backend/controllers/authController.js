@@ -31,3 +31,13 @@ exports.authMiddleware = (req, res, next) => {
     }
  
 };
+
+
+exports.zegoToken = (req, res) => {
+    try {
+        
+    } catch (e) {
+        return res.status(500).json({error : "Server Err" });
+    }
+}
+

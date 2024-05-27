@@ -12,7 +12,7 @@ exports.findUserByUsername = async(username) => {
 
 exports.getUserInf = async(userid) => {
    return await Model.User.findOne({_id : userid})
-                          .populate({path:"conversations",select:"_id lastActive length", 
+                          .populate({path:"conversations",select:"_id lastActive length blockStatus", 
                                      populate: {path:"members", select:"_id displayName", 
                                                 match: {_id: {$ne: userid}}    
                                       } } );

@@ -99,3 +99,33 @@ exports.createConversation = async(req,res) => {
   }
 };
 // => createConversation tạo cuộc trò chuyện, đầu vào là userID của hai người trong cuộc trò chuyện đó
+
+
+
+exports.updatConvStatus = async (req, res) => {
+  try {
+    let update = await messageService.updateconvStatus(req.body["userID"], req.body["convID"], req.body["status"] );
+    // console.log(update);
+    if(update['acknowledged']==true && update['modifiedCount']==1 ) res.json({status: "update succesfully"});
+    else res.json({status: "update unsuccesfully"});
+    
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+exports.updateBlockStatus = async (req, res) => {
+  try {
+    let update = await messageService.updateBlockStatus(req.body["convID"], req.body["status"] );
+    // console.log(update);
+    if(update['acknowledged']==true && update['modifiedCount']==1 ) res.json({status: "update succesfully"});
+    else res.json({status: "update unsuccesfully"});
+    
+    
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
