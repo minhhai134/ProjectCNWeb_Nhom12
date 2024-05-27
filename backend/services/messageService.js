@@ -142,8 +142,8 @@ exports.createConversationByMembers = async (conversation) => {
         let u = await Model.User.findOne({_id:conv.members[0]});
         
         let convStatus = {};
-        if(i==0) convStatus = {convID:u._id,status: "accept"};
-                else convStatus = {convID:u._id,status: "pending"};
+        if(i==0) convStatus = {convID:conv._id,status: "accept"};
+                else convStatus = {convID:conv._id,status: "pending"};
 
 
         // CUỘC TRÒ CHUYỆN ĐẦU TIÊN
