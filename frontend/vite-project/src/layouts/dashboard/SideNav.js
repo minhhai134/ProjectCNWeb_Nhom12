@@ -1,7 +1,7 @@
 import React from "react";
 import { useTheme } from "@mui/material/styles";
 
-import { Box, Divider, IconButton, Stack } from "@mui/material";
+import { Box, Divider, IconButton, Stack, Typography } from "@mui/material";
 import AntSwitch from "../../components/AntSwitch";
 
 import useSettings from "../../hooks/useSettings";
@@ -16,16 +16,6 @@ const getPath = (index) => {
   switch (index) {
     case 0:
       return "/app";
-
-    case 1:
-      return "/group";
-
-    case 2:
-      return "/call";
-
-    case 3:
-      return "/settings";
-
     default:
       break;
   }
@@ -36,6 +26,8 @@ const SideBar = () => {
   const dispatch = useDispatch();
 
   const { tab } = useSelector((state) => state.app);
+
+  const {displayName} = useSelector((state)=> state.auth)
 
   const navigate = useNavigate();
 
@@ -109,52 +101,14 @@ const SideBar = () => {
                 </IconButton>
               );
             })}
-            <Divider sx={{ width: 48 }} />
-            {Nav_Setting.map((el) => {
-              return el.index == selectedTab ? (
-                <Box
-                  sx={{
-                    backgroundColor: theme.palette.primary.main,
-                    borderRadius: 1.5,
-                  }}
-                  p={1}
-                >
-                  <IconButton
-                    onClick={() => {
-                      handleChangeTab(el.index);
-                    }}
-                    sx={{ width: "max-content", color: "#ffffff" }}
-                  >
-                    {el.icon}
-                  </IconButton>
-                </Box>
-              ) : (
-                <IconButton
-                  onClick={() => {
-                    handleChangeTab(el.index);
-
-                    // dispatch(UpdateTab(el.index));
-                  }}
-                  sx={{
-                    width: "max-content",
-                    color:
-                      theme.palette.mode === "light"
-                        ? "#080707"
-                        : theme.palette.text.primary,
-                  }}
-                >
-                  {el.icon}
-                </IconButton>
-              );
-            })}
           </Stack>
         </Stack>
-        <Stack spacing={4}>
+        <Stack spacing={3} justifyContent='center' alignItems='center'>
+          <Typography variant="subtitle2">{displayName}</Typography>
           <AntSwitch
             defaultChecked={theme.palette.mode === "dark"}
             onChange={onToggleMode}
           />
-          {/* Profile Menu */}
           <ProfileMenu />
         </Stack>
       </Stack>

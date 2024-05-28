@@ -14,7 +14,7 @@ import { AddDirectMessage,SetLatestMessage } from "../../redux/slices/conversati
 const user_id = window.localStorage.getItem("user_id");
 
 const Conversation = ({ isMobile, menu }) => {
-  const { conversationsList, current_messages } = useSelector(
+  const { current_messages } = useSelector(
     (state) => state.conversation
   );
 
@@ -62,14 +62,14 @@ const ChatComponent = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    socket.on("trans-msg", (msg) => {
-      dispatch(AddDirectMessage({ message: msg }));
-      dispatch(SetLatestMessage({ message: msg }));
-    });
-
-    return () => {
-      socket.off("trans-msg");
-    };
+      socket.on("trans-msg", (msg) => {
+        dispatch(AddDirectMessage({ message: msg }));
+        dispatch(SetLatestMessage({ message: msg }));
+        console.log(msg)
+      });
+      return () => {
+        socket.off("trans-msg");
+      };
   }, [dispatch]);
 
   useEffect(() => {

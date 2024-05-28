@@ -20,8 +20,6 @@ import Iconify from "../../Iconify";
 import Scrollbar from "../../Scrollbar";
 //
 import ToggleButton from "./ToggleButton";
-import SettingDirection from "./SettingDirection";
-import SettingFullscreen from "./SettingFullscreen";
 import SettingColorPresets from "./SettingColorPresets";
 
 // ----------------------------------------------------------------------
@@ -137,16 +135,9 @@ export default function SettingsDrawer() {
               <Scrollbar sx={{ flexGrow: 1 }}>
                 <Stack spacing={3} sx={{ p: 3 }}>
                   <Stack spacing={1.5}>
-                    <Typography variant="subtitle2">Direction</Typography>
-                    <SettingDirection />
-                  </Stack>
-
-                  <Stack spacing={1.5}>
                     <Typography variant="subtitle2">Presets</Typography>
                     <SettingColorPresets />
                   </Stack>
-
-                  <SettingFullscreen />
                 </Stack>
               </Scrollbar>
             </RootStyle>

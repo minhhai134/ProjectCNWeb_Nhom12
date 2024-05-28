@@ -1,6 +1,4 @@
 import axios from 'axios';
-// config
-import { BASE_URL } from '../config';
 
 // ----------------------------------------------------------------------
 

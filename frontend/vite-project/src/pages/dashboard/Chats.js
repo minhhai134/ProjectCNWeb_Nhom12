@@ -6,6 +6,8 @@ import {
   IconButton,
   Stack,
   Typography,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import {
   ArchiveBox,
@@ -23,13 +25,16 @@ import {
   SearchIconWrapper,
   StyledInputBase,
 } from "../../components/Search";
-import Friends from "../../sections/Dashboard/Friends";
-import { socket } from "../../socket";
+import { socket, connectSocket, disconnectSocket } from "../../socket";
 import { useDispatch, useSelector } from "react-redux";
-import { FetchConversations, SetLatestMessage, FetchCurrentMessages } from "../../redux/slices/conversation";
-import { format, parseISO, isSameDay } from "date-fns";
+import {
+  FetchConversations,
+  SetLatestMessage,
+  FetchCurrentMessages,
+  UpdateConversationStatus
+} from "../../redux/slices/conversation";
+import { format, parseISO, isSameDay, isValid } from "date-fns";
 import { vi } from "date-fns/locale";
-import axios from "../../utils/axios";
 
 const Chats = () => {
   const theme = useTheme();
@@ -37,15 +42,34 @@ const Chats = () => {
 
   const dispatch = useDispatch();
   const { user_id } = useSelector((state) => state.auth);
-  const { conversationsList } = useSelector((state) => state.conversation);
+  const { conversationsList, pendingConversationsList } = useSelector(
+    (state) => state.conversation
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
-  const [openDialog, setOpenDialog] = useState(false);
+  const [tab, setTab] = useState(0);
 
   useEffect(() => {
     if (user_id) {
       dispatch(FetchConversations());
+      connectSocket(user_id);
+
+      socket.on("trans-msg", (msg) => {
+        console.log(msg)
+        dispatch(SetLatestMessage({ message: msg }));
+      });
+
+      socket.on("searchUserResult", (result) => {
+        console.log("Search results received:", result);
+        setSearchResults(result);
+      });
+
+      return () => {
+        disconnectSocket();
+        socket.off("trans-msg");
+        socket.off("searchUserResult");
+      };
     }
   }, [dispatch, user_id]);
 
@@ -59,45 +83,19 @@ const Chats = () => {
         searchStr,
       };
 
-      socket.emit("search_user", user);
-      console.log("Searching for user:", user);
+      if (socket) {
+        socket.emit("search_user", user);
+        console.log("Searching for user:", user);
+      }
     } else {
       setSearchResults([]);
     }
-  };
-
-  useEffect(() => {
-    socket.on("searchUserResult", (result) => {
-      console.log("Search results received:", result);
-      setSearchResults(result);
-    });
-
-    return () => {
-      socket.off("searchUserResult");
-    };
-  }, []);
-  useEffect(() => {
-    socket.on("trans-msg", (msg) => {
-      dispatch(SetLatestMessage({ message: msg }));
-    });
-
-    return () => {
-      socket.off("trans-msg");
-    };
-  }, [dispatch]);
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-  };
-
-  const handleOpenDialog = () => {
-    setOpenDialog(true);
   };
 
   const formatTime = (time) => {
     const date = parseISO(time);
     const now = new Date();
 
-    // Adjust for GMT+7
     const adjustedDate = new Date(date.getTime());
 
     if (isSameDay(adjustedDate, now)) {
@@ -111,52 +109,56 @@ const Chats = () => {
     try {
       const url = "http://localhost:8000/api/conversation";
       const members = [user_id.toString(), friendID.toString()];
-      console.log(members)
-      
-      // Create the body using URLSearchParams
+
       let body = new URLSearchParams();
-      body.append("members",members);
-      console.log(body.toString())
-  
-      // Check if the conversation exists
+      body.append("members", members);
+
       const req1 = {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: body.toString()
+        body: body.toString(),
       };
-  
+
       let res = await callAPI(url, req1);
-      let currentConversation = res ? res._id : null;
-      console.log("Current conversation:", currentConversation);
-  
-      // If the conversation does not exist, create a new one
-      if (!currentConversation) {
+      console.log(res);
+
+      if (!res || !res.data || !res.data._id) {
+        console.warn(
+          "PUT request did not return a valid conversation, attempting to create a new one",
+          res
+        );
+
         const req2 = {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            "Content-Type": "application/x-www-form-urlencoded",
           },
-          body: body.toString()
+          body: body.toString(),
         };
-  
+
         res = await callAPI(url, req2);
-        currentConversation = res ? res._id : null;
-        console.log("New conversation created:", currentConversation);
+        console.log(res);
+
+        if (!res || !res.data || !res.data._id) {
+          throw new Error("Failed to create or find conversation.");
+        }
       }
-  
-      if (currentConversation) {
-        dispatch(FetchCurrentMessages({ conversationId: currentConversation }));
-      }
+
+      const currentConversation = res.data._id;
+
+      dispatch(FetchCurrentMessages({ conversationId: currentConversation }));
+      setSelectedConversation(currentConversation);
       dispatch(FetchConversations());
-      setSearchTerm('');
-      setSearchResults('')
+
+      setSearchTerm("");
+      setSearchResults([]);
     } catch (error) {
       console.error("Error handling search result click:", error);
     }
   };
-  
+
   async function callAPI(url, req) {
     try {
       const response = await fetch(url, req);
@@ -167,11 +169,70 @@ const Chats = () => {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error creating document:', error);
+      console.error("Error creating document:", error);
       return null;
     }
   }
-  // conversationsList.sort((a, b) => b.latestMessage.sentTime - a.latestMessage.sentTime);
+
+  const sortedConversationsList = conversationsList.slice().sort((a, b) => {
+    const timeA =
+      a.latestMessage && isValid(parseISO(a.latestMessage?.sentTime))
+        ? parseISO(a.latestMessage?.sentTime)
+        : a.lastActive && isValid(parseISO(a.lastActive))
+        ? parseISO(a.lastActive)
+        : new Date(0); // Default to earliest date if both are missing
+    const timeB =
+      b.latestMessage && isValid(parseISO(b.latestMessage?.sentTime))
+        ? parseISO(b.latestMessage?.sentTime)
+        : b.lastActive && isValid(parseISO(b.lastActive))
+        ? parseISO(b.lastActive)
+        : new Date(0); // Default to earliest date if both are missing
+    return timeB - timeA;
+  });
+  const sortedPendingConversationsList = pendingConversationsList.slice().sort((a, b) => {
+    const timeA =
+      a.latestMessage && isValid(parseISO(a.latestMessage?.sentTime))
+        ? parseISO(a.latestMessage?.sentTime)
+        : a.lastActive && isValid(parseISO(a.lastActive))
+        ? parseISO(a.lastActive)
+        : new Date(0); // Default to earliest date if both are missing
+    const timeB =
+      b.latestMessage && isValid(parseISO(b.latestMessage?.sentTime))
+        ? parseISO(b.latestMessage?.sentTime)
+        : b.lastActive && isValid(parseISO(b.lastActive))
+        ? parseISO(b.lastActive)
+        : new Date(0); // Default to earliest date if both are missing
+    return timeB - timeA;
+  });
+
+  // Ensure the selected conversation is at the top
+  if (selectedConversation) {
+    const selectedConvIndex = sortedConversationsList.findIndex(
+      (conv) => conv._id === selectedConversation
+    );
+    if (selectedConvIndex > -1) {
+      const [selectedConv] = sortedConversationsList.splice(
+        selectedConvIndex,
+        1
+      );
+      sortedConversationsList.unshift(selectedConv);
+    }
+  }
+
+  const handleChangeStatus = async (conversationId, currentStatus) => {
+    try {
+      const newStatus = currentStatus === 'accept' ? 'pending' : 'accept';
+      dispatch(UpdateConversationStatus(conversationId, newStatus));
+    } catch (error) {
+      console.error('Error changing status:', error);
+    }
+  };
+  
+
+  const handleTabChange = (event, newValue) => {
+    setTab(newValue);
+  };
+
   return (
     <>
       <Box
@@ -187,16 +248,12 @@ const Chats = () => {
         {!isDesktop && <BottomNav />}
 
         <Stack p={3} spacing={2} sx={{ maxHeight: "100vh" }}>
-          <Stack alignItems={"center"} justifyContent="space-between" direction="row">
+          <Stack
+            alignItems={"center"}
+            justifyContent="space-between"
+            direction="row"
+          >
             <Typography variant="h5">Chats</Typography>
-            <Stack direction={"row"} alignItems="center" spacing={1}>
-              <IconButton onClick={handleOpenDialog} sx={{ width: "max-content" }}>
-                <Users />
-              </IconButton>
-              <IconButton sx={{ width: "max-content" }}>
-                <CircleDashed />
-              </IconButton>
-            </Stack>
           </Stack>
           <Stack sx={{ width: "100%" }}>
             <Search>
@@ -211,13 +268,12 @@ const Chats = () => {
               />
             </Search>
           </Stack>
-          <Stack spacing={1}>
-            <Stack direction={"row"} spacing={1.5} alignItems="center">
-              <ArchiveBox size={24} />
-              <Button variant="text">Archive</Button>
-            </Stack>
-            <Divider />
-          </Stack>
+          <Divider />
+          <Tabs value={tab} onChange={handleTabChange} variant="fullWidth">
+            <Tab label="Tin nhắn" />
+            <Tab label="Tin nhắn chờ" />
+          </Tabs>
+          <Divider />
           <Stack sx={{ flexGrow: 1, overflow: "scroll", height: "100%" }}>
             <SimpleBarStyle timeout={500} clickOnTrack={false}>
               <Stack spacing={2.4}>
@@ -229,34 +285,84 @@ const Chats = () => {
                     {searchResults.map((user, idx) => (
                       <ChatElement
                         key={idx}
-                        displayName={user._id === user_id ? 'Bạn' : user.displayName}
+                        displayName={user._id === user_id ? "Bạn" : user.displayName}
                         onClick={() => handleSearchResultClick(user._id)}
+                      />
+                    ))}
+                    <Divider />
+                  </>
+                )}
+                {tab === 0 && (
+                  <>
+                    <Typography variant="subtitle2" sx={{ color: "#676667" }}>
+                      All Chats
+                    </Typography>
+                    {sortedConversationsList.map((conversation, idx) => (
+                      <ChatElement
+                        key={idx}
+                        {...conversation}
+                        displayName={conversation.members[0].displayName}
+                        msg={
+                          user_id === conversation.latestMessage?.sender
+                            ? `Bạn: ${conversation.latestMessage?.content}`
+                            : conversation.latestMessage?.content || "No message"
+                        }
+                        time={
+                          conversation.latestMessage
+                            ? formatTime(conversation.latestMessage?.sentTime) ||
+                              formatTime(conversation.lastActive)
+                            : ""
+                        }
+                        id={conversation._id}
+                        onClick={() => {
+                          dispatch(
+                            FetchCurrentMessages({ conversationId: conversation._id })
+                          );
+                        }}
+                        onChangeStatus={() => handleChangeStatus(conversation._id, 'accept')}
+                        status="accept"
                       />
                     ))}
                   </>
                 )}
-                <Typography variant="subtitle2" sx={{ color: "#676667" }}>
-                  All Chats
-                </Typography>
-                {conversationsList.map((conversation, idx) => (
-                  <ChatElement
-                    key={idx}
-                    {...conversation}
-                    displayName={conversation.members[0].displayName}
-                    msg={user_id === conversation.latestMessage?.sender ? `Bạn: ${conversation.latestMessage?.content}` : conversation.latestMessage?.content||'No message'}
-                    time={conversation.latestMessage!==null?formatTime(conversation.latestMessage?.sentTime) || formatTime(conversation.lastActive):''}
-                    id={conversation._id}
-                    onClick={() => {
-                      dispatch(FetchCurrentMessages({ conversationId: conversation._id }));
-                    }}
-                  />
-                ))}
+                {tab === 1 && (
+                  <>
+                    <Typography variant="subtitle2" sx={{ color: "#676667" }}>
+                      Pending Chats
+                    </Typography>
+                    {sortedPendingConversationsList.map((conversation, idx) => (
+                      <ChatElement
+                        key={idx}
+                        {...conversation}
+                        displayName={conversation.members[0].displayName}
+                        msg={
+                          user_id === conversation.latestMessage?.sender
+                            ? `Bạn: ${conversation.latestMessage?.content}`
+                            : conversation.latestMessage?.content || "No message"
+                        }
+                        time={
+                          conversation.latestMessage
+                            ? formatTime(conversation.latestMessage?.sentTime) ||
+                              formatTime(conversation.lastActive)
+                            : ""
+                        }
+                        id={conversation._id}
+                        onClick={() => {
+                          dispatch(
+                            FetchCurrentMessages({ conversationId: conversation._id })
+                          );
+                        }}
+                        onChangeStatus={() => handleChangeStatus(conversation._id, 'pending')}
+                        status="pending"
+                      />
+                    ))}
+                  </>
+                )}
               </Stack>
             </SimpleBarStyle>
           </Stack>
         </Stack>
       </Box>
-      {openDialog && <Friends open={openDialog} handleClose={handleCloseDialog} />}
     </>
   );
 };

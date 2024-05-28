@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   Avatar,
   Badge,
@@ -13,13 +13,14 @@ import {
   Typography,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { CaretDown, MagnifyingGlass, Phone, VideoCamera } from "phosphor-react";
-import { faker } from "@faker-js/faker";
+import { CaretDown } from "phosphor-react";
 import useResponsive from "../../hooks/useResponsive";
 import { ToggleSidebar } from "../../redux/slices/app";
 import { useDispatch, useSelector } from "react-redux";
-import { StartAudioCall } from "../../redux/slices/audioCall";
-import { StartVideoCall } from "../../redux/slices/videoCall";
+import axios from "../../utils/axios";
+import { UpdateBlockStatus } from "../../redux/slices/conversation";
+import debounce from "lodash.debounce"; 
+import { socket } from "../../socket"; 
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   "& .MuiBadge-badge": {
@@ -52,16 +53,8 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 
 const Conversation_Menu = [
   {
-    title: "Contact info",
-  },
-  {
-    title: "Mute notifications",
-  },
-  {
-    title: "Clear messages",
-  },
-  {
-    title: "Delete chat",
+    title: "Block this user",
+    action: "block",
   },
 ];
 
@@ -70,10 +63,10 @@ const ChatHeader = () => {
   const isMobile = useResponsive("between", "md", "xs", "sm");
   const theme = useTheme();
 
-  const {conversationsList,currentConversationId} = useSelector((state) => state.conversation);
+  const { conversationsList, currentConversationId, pendingConversationsList } = useSelector((state) => state.conversation);
+  const { user_id } = useSelector((state) => state.auth);
 
-  const [conversationMenuAnchorEl, setConversationMenuAnchorEl] =
-    React.useState(null);
+  const [conversationMenuAnchorEl, setConversationMenuAnchorEl] = useState(null);
   const openConversationMenu = Boolean(conversationMenuAnchorEl);
   const handleClickConversationMenu = (event) => {
     setConversationMenuAnchorEl(event.currentTarget);
@@ -81,6 +74,70 @@ const ChatHeader = () => {
   const handleCloseConversationMenu = () => {
     setConversationMenuAnchorEl(null);
   };
+
+  useEffect(() => {
+    const handleBlock = (userID, convID) => {
+      dispatch(UpdateBlockStatus(convID, userID));
+    };
+
+    socket.on("blocked", handleBlock);
+
+    return () => {
+      socket.off("blocked", handleBlock);
+    };
+  }, [dispatch, user_id]);
+
+  const handleBlockUser = async () => {
+    if (!currentConversationId) return;
+  
+    const convID = currentConversationId.conversationId;
+    const status = user_id;
+  
+    try {
+      // Gửi yêu cầu POST để cập nhật trạng thái block
+      const body = new URLSearchParams({
+        convID,
+        status,
+      });
+  
+      const response = await axios.post("/blockStatus", body);
+      console.log("Block status updated successfully:", response.data);
+  
+      // Cập nhật trạng thái block trong Redux
+      dispatch(UpdateBlockStatus(convID, status));
+  
+      // Gửi sự kiện socket để thông báo trạng thái block
+      const receiverId = getReceiverId(convID);
+      if (receiverId) {
+        const blockObj = {
+          user1: user_id,
+          user2: receiverId,
+          conv: convID,
+        };
+        socket.emit("blockUser", blockObj);
+      }
+    } catch (error) {
+      console.error("Error updating block status:", error);
+    }
+  };
+  
+  const getReceiverId = (convId) => {
+    const conversation = conversationsList.find(conv => conv._id === convId);
+    if (conversation) return conversation.members[0]._id;
+    const pendingConversation = pendingConversationsList.find(conv => conv._id === convId);
+    return pendingConversation ? pendingConversation.members[0]._id : null;
+  };
+
+  const getDisplayName = (convId) => {
+    const conversation = conversationsList.find(conv => conv._id === convId);
+    if (conversation) {
+      return conversation.members[0].displayName;
+    }
+    const pendingConversation = pendingConversationsList.find(conv => conv._id === convId);
+    return pendingConversation ? pendingConversation.members[0].displayName : "Unknown";
+  };
+
+  const displayName = getDisplayName(currentConversationId ? currentConversationId.conversationId : "");
 
   return (
     <>
@@ -118,14 +175,14 @@ const ChatHeader = () => {
                 variant="dot"
               >
                 <Avatar
-                  alt={conversationsList.find(conv => conv._id===currentConversationId).members[0].displayName}
+                  alt={displayName}
                   src={''}
                 />
               </StyledBadge>
             </Box>
             <Stack spacing={0.2}>
               <Typography variant="subtitle2">
-                {conversationsList.find(conv => conv._id===currentConversationId).members[0].displayName}
+                {displayName}
               </Typography>
               <Typography variant="caption">Online</Typography>
             </Stack>
@@ -135,24 +192,6 @@ const ChatHeader = () => {
             alignItems="center"
             spacing={isMobile ? 1 : 3}
           >
-            {/* <IconButton onClick={() => {
-              dispatch(StartVideoCall(current_conversation.user_id));
-            }}>
-              <VideoCamera />
-            </IconButton>
-            <IconButton
-              onClick={() => {
-                
-                dispatch(StartAudioCall(current_conversation.user_id));
-              }}
-            >
-              <Phone />
-            </IconButton> */}
-            {!isMobile && (
-              <IconButton>
-                <MagnifyingGlass />
-              </IconButton>
-            )}
             <Divider orientation="vertical" flexItem />
             <IconButton
               id="conversation-positioned-button"
@@ -189,7 +228,15 @@ const ChatHeader = () => {
               <Box p={1}>
                 <Stack spacing={1}>
                   {Conversation_Menu.map((el) => (
-                    <MenuItem onClick={handleCloseConversationMenu}>
+                    <MenuItem
+                      key={el.title}
+                      onClick={() => {
+                        handleCloseConversationMenu();
+                        if (el.action === "block") {
+                          handleBlockUser();
+                        }
+                      }}
+                    >
                       <Stack
                         sx={{ minWidth: 100 }}
                         direction="row"
@@ -197,7 +244,7 @@ const ChatHeader = () => {
                         justifyContent="space-between"
                       >
                         <span>{el.title}</span>
-                      </Stack>{" "}
+                      </Stack>
                     </MenuItem>
                   ))}
                 </Stack>
@@ -206,8 +253,6 @@ const ChatHeader = () => {
           </Stack>
         </Stack>
       </Box>
-
-      
     </>
   );
 };

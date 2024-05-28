@@ -1,11 +1,8 @@
 import React from "react";
-import { Box, Badge, Stack, Avatar, Typography } from "@mui/material";
+import { Box, Badge, Stack, Avatar, Typography,IconButton } from "@mui/material";
 import { styled, useTheme, alpha } from "@mui/material/styles";
-import { useDispatch, useSelector } from "react-redux";
-import { SelectConversation } from "../redux/slices/app";
-import conversation, { FetchCurrentMessages } from "../redux/slices/conversation";
-import { format, parseISO, isSameDay } from "date-fns";
-import { vi } from "date-fns/locale";
+import { ArrowCircleLeft,ArrowCircleRight } from "phosphor-react";
+import { useSelector } from "react-redux";
 
 const truncateText = (string, n) => {
   return string?.length > n ? `${string?.slice(0, n)}...` : string;
@@ -46,11 +43,10 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
   },
 }));
 
-const ChatElement = ({ img, displayName, msg, time, unread, online, id, isSearching,onClick }) => {
-  const dispatch = useDispatch();
+const ChatElement = ({ img, displayName, msg, time, unread, online, id ,onClick, onChangeStatus,status }) => {
   const { currentConversationId,isFirstLogin } = useSelector((state) => state.conversation);
 
-  const isSelected = !isFirstLogin ? currentConversationId === id:false;
+  const isSelected = !isFirstLogin ? currentConversationId.conversationId === id:false;
 
   const theme = useTheme();
 
@@ -97,6 +93,9 @@ const ChatElement = ({ img, displayName, msg, time, unread, online, id, isSearch
           <Typography sx={{ fontWeight: 600 }} variant="caption">
             {time}
           </Typography>
+          <IconButton onClick={onChangeStatus}>
+          {status === 'accept' ?  <ArrowCircleRight />:<ArrowCircleLeft /> }
+        </IconButton>
           <Badge className="unread-count" color="primary" badgeContent={unread} />
         </Stack>
       </Stack>

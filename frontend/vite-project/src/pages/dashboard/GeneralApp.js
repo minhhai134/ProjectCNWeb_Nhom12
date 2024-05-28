@@ -4,11 +4,8 @@ import { Box, Stack, Typography } from "@mui/material";
 import { Link, useSearchParams } from "react-router-dom";
 import ChatComponent from "./Conversation";
 import Chats from "./Chats";
-import Contact from "../../sections/Dashboard/Contact";
 import NoChat from "../../assets/Illustration/NoChat";
 import { useSelector } from "react-redux";
-import StarredMessages from "../../sections/Dashboard/StarredMessages";
-import Media from "../../sections/Dashboard/SharedMessages";
 
 const GeneralApp = () => {
   const [searchParams] = useSearchParams();
@@ -62,19 +59,6 @@ const GeneralApp = () => {
             </Stack>
           )}
         </Box>
-        {sideBar.open &&
-          (() => {
-            switch (sideBar.type) {
-              case "CONTACT":
-                return <Contact />;
-              case "STARRED":
-                return <StarredMessages />;
-              case "SHARED":
-                return <Media />;
-              default:
-                break;
-            }
-          })()}
       </Stack>
     </>
   );

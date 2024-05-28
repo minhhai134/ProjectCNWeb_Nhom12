@@ -6,9 +6,9 @@ import { faker } from "@faker-js/faker";
 import { Profile_Menu } from "../../data";
 import { useDispatch, useSelector } from "react-redux";
 import { LogoutUser } from "../../redux/slices/auth";
+import { LogoutUserConv } from "../../redux/slices/conversation";
 import { socket } from "../../socket";
 import { useNavigate } from "react-router-dom";
-import { AWS_S3_REGION, S3_BUCKET_NAME } from "../../config";
 
 const ProfileMenu = () => {
   const {user} = useSelector((state) => state.app);
@@ -24,9 +24,7 @@ const ProfileMenu = () => {
   };
 
   const user_id = window.localStorage.getItem("user_id");
-
-  const user_name = user?.firstName;
-  const user_img = `https://${S3_BUCKET_NAME}.s3.${AWS_S3_REGION}.amazonaws.com/${user?.avatar}`;
+  const{displayName}=useSelector((state => state.auth))
 
   return (
     <>
@@ -35,8 +33,7 @@ const ProfileMenu = () => {
         aria-controls={openMenu ? "profile-positioned-menu" : undefined}
         aria-haspopup="true"
         aria-expanded={openMenu ? "true" : undefined}
-        alt={user_name}
-        src={user_img}
+        alt={displayName}
         onClick={handleClick}
       />
       <Menu
@@ -67,12 +64,9 @@ const ProfileMenu = () => {
                     if(idx === 0) {
                       navigate("/profile");
                     }
-                    else if(idx === 1) {
-                      navigate("/settings");
-                    }
                     else {
                       dispatch(LogoutUser());
-                      socket.emit("end", {user_id});
+                      dispatch(LogoutUserConv());
                     }
                   }}
                   sx={{ width: 100 }}
