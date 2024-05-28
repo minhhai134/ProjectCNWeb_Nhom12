@@ -15,7 +15,12 @@ const userSchema = mongoose.Schema({
         {
         type : mongoose.Schema.ObjectId,
         ref : "Conversation",
-        seenStatus: String
+    }
+    ],
+    conversationStatus : [
+        {
+           convID : String,
+           status : String
         }
     ]
 
@@ -59,7 +64,8 @@ const conversationSchema = mongoose.Schema({
     ],
     lastActive: Date,
     length : Number,
-   
+    blockStatus: {type:String, default:""}
+      
 
 }, {
     strictPopulate: false

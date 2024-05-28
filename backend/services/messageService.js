@@ -27,9 +27,37 @@ exports.addMessageToConversation = async (msg, convID) => {
     //     }
     //   );
 };
-exports.updateSeenStatus = async (convID, userID, status) => {  // Chưa tối ưu
+
+// CẬP NHẬT TRẠNG THÁI CUỘC TRÒ CHUYỆN ĐỐI VỚI CÁ NHÂN (pending hay accepted)
+exports.updateconvStatus = async (userID,convID, status) => {  // Chưa tối ưu
     
+     let result = await Model.User.updateOne({_id: userID, "conversationStatus.convID":convID  },  //, "conversationStatus.convID" : convID
+                                             { $set:  {"conversationStatus.$.status":status} } );
+     console.log(result);
+
+    // let result = await Model.User.updateOne()
+     return result;
 }; 
+// CODE PHỤ: THÊM TRẠNG THÁI CUỘC TRÒ CHUYỆN ĐỐI VỚI CÁ NHÂN (pending hay accepted)
+exports.updateconvStatuss = async (userID,convID, status) => {  // Chưa tối ưu
+    let obj = {convID:convID,status : status};
+     let result = await Model.User.updateOne({_id: userID },  //, "conversationStatus.convID" : convID
+                                             { $push:  {conversationStatus: obj} } );
+    //  console.log(result);
+
+    // let result = await Model.User.updateOne()
+     return result;
+}; 
+//******************************************************************************************** */
+
+exports.updateBlockStatus = async (convID, status) => {
+    let result = await Model.conversation.updateOne({_id: convID },  //, "conversationStatus.convID" : convID
+                                            { $set:  {blockStatus: status} } );
+   //  console.log(result);
+
+   // let result = await Model.User.updateOne()
+    return result;
+}
 
 
 
@@ -97,6 +125,9 @@ exports.findConversationByID = async (id) => {
 // };
 
 
+
+
+
 // TẠO CUỘC TRÒ CHUYỆN BẰNG ID CỦA CÁC THÀNH VIÊN, 
 // kết hợp thêm cuộc trò chuyện vào danh sách conversation của các thành viên
 exports.createConversationByMembers = async (conversation) => {
@@ -110,26 +141,39 @@ exports.createConversationByMembers = async (conversation) => {
     for (let i = 0; i < conv.members.length; i++) {
         let u = await Model.User.findOne({_id:conv.members[0]});
         
-        if(!u.conversations) {
+        let convStatus = {};
+        if(i==0) convStatus = {convID:conv._id,status: "accept"};
+                else convStatus = {convID:conv._id,status: "pending"};
+
+
+        // CUỘC TRÒ CHUYỆN ĐẦU TIÊN
+        if(!u.conversations) { 
 
             let convarray = [];
             convarray.push(conv._id);
+            let convstatusarray = [];
+            convstatusarray.push(convStatus);
+
+
             try{ 
                 user = await Model.User.findByIdAndUpdate(
                 { _id: conv.members[i] }, // Filter to find the user document by its ID
-                { $set: { conversations: convarray }}
+                { $set: { conversations: convarray, conversationStatus:convstatusarray   }}
             );
             // console.log(user);
         }
             catch(err){console.log(err);}
            
         }
+
+        // KHÔNG PHẢI CUỘC TRÒ CHUYỆN ĐẦU TIÊN
         else {
 
             try{    
+
                 user = await Model.User.findByIdAndUpdate(
                 { _id: conv.members[i] }, // Filter to find the user document by its ID
-                { $push: { conversations: conv._id }}
+                { $push: { conversations: conv._id, conversationStatus:convStatus }}
             );
             }
             catch(err){console.log(err);}
